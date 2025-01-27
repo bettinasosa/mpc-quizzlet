@@ -1,0 +1,130 @@
+{
+  "internals": [
+    {
+      "feature": 1,
+      "threshold": 1
+    },
+    {
+      "feature": 8,
+      "threshold": 1
+    },
+    {
+      "feature": 2,
+      "threshold": 0
+    },
+    {
+      "feature": 7,
+      "threshold": 2
+    },
+    {
+      "feature": 2,
+      "threshold": 1
+    },
+    {
+      "feature": 4,
+      "threshold": 1
+    },
+    {
+      "feature": 0,
+      "threshold": 2
+    }
+  ],
+  "leaves": [
+    {
+      "classification": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "classification": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "classification": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "classification": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "classification": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "classification": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "classification": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "classification": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
