@@ -1,102 +1,80 @@
-import { Client } from "@partisiablockchain/zk-client"
+import { BlockchainAddress } from "@partisiablockchain/abi-client"
+import { serializeModel, serializeSample } from "./serializer"
+import { ZkRpcBuilder } from "@partisiablockchain/zk-client"
+import { BN } from "bn.js"
 
-const CONTRACT_ADDRESS =
-  "497d97c67a3a5b7021756993c1575e5a30dfa61e34ed3dcaa879ccba33536f6a"
+const ZK_CONTRACT = BlockchainAddress.fromString(
+  "03be427dbe748f6e82f16548f28409b18171f09d4d"
+)
+const SENDER_PRIVATE_KEY = "your-private-key-hex"
+const TESTNET_URL = "https://node1.testnet.partisiablockchain.com"
 
-export const getPartisiaClient = () => {
-  return new Client({
-    baseUrl: "https://node1.testnet.partisia.io",
-    wallet: "0x00f103c94985d4babb12d23845a37a23d5ee328076"
-  })
-}
+async function main() {
+  // 1. Initialize client
+  const client = new Client(TESTNET_URL)
+  const sender = TransactionSender.create(client, SENDER_PRIVATE_KEY)
 
-export const getContractAbi = () => ({
-  // Contract ABI matching our Rust contract
-  functions: {
-    add_input_sample: {
-      arguments: [{ name: "features", type: "Vec<u16>" }],
-      name: "add_input_sample",
-      return_type: "Unit"
-    },
-    get_personality: {
-      arguments: [],
-      name: "get_personality",
-      return_type: "Option<u8>"
-    }
-  }
-})
-
-export const sendInputToContract = async (features: number[]) => {
-  const client = getPartisiaClient()
-  const abi = getContractAbi()
-
-  const payload = {
-    contract: CONTRACT_ADDRESS,
-    abi,
-    functionName: "add_input_sample",
-    arguments: [features]
+  // 2. Load model data
+  const model = {
+    internals: [
+      { feature: 1, threshold: 1 }
+      // ... rest of your model internals
+    ],
+    leaves: [
+      { classification: [1, 0, 0, 0, 0, 0, 0, 0] }
+      // ... rest of your leaves
+    ]
   }
 
-  try {
-    const result = await client.putZkInputOnChain(payload)
-    return result
-  } catch (error) {
-    console.error("Error sending input to contract:", error)
-    throw error
-  }
-}
+  // 3. Serialize and send model
+  const modelPayload = ZkRpcBuilder.zkInputOffChain(
+    serializeModel(model),
+    Buffer.from([0x40]) // Secret input shortcode
+  )
 
-export const verifyContractConnection = async () => {
-  const client = getPartisiaClient()
+  const modelTx = await sender.sendAndSign(
+    { address: ZK_CONTRACT, rpc: modelPayload.rpc },
+    new BN(100000)
+  )
+  console.log(
+    "Model TX:",
+    modelTx.transactionPointer.identifier.toString("hex")
+  )
 
-  try {
-    // First verify the contract exists
-    const contractState = await client.getContractState(CONTRACT_ADDRESS)
-    if (!contractState) {
-      throw new Error("Contract not found at specified address")
-    }
+  // 4. Serialize and send sample
+  const sampleAnswers = [1, 3, 2, 0, 1, 2, 3, 0, 2, 1] // Replace with actual answers
+  const samplePayload = ZkRpcBuilder.zkInputOffChain(
+    serializeSample(sampleAnswers),
+    Buffer.from([0x41]) // Sample input shortcode
+  )
 
-    // Try to call a read function to verify ABI
-    const result = await client.contract({
-      contract: CONTRACT_ADDRESS,
-      abi: getContractAbi(),
-      functionName: "get_personality",
-      arguments: []
+  const sampleTx = await sender.sendAndSign(
+    { address: ZK_CONTRACT, rpc: samplePayload.rpc },
+    new BN(100000)
+  )
+  console.log(
+    "Sample TX:",
+    sampleTx.transactionPointer.identifier.toString("hex")
+  )
+
+  // 5. Trigger evaluation (assuming modelVarId=1, sampleVarId=2)
+  const evaluatePayload = ZkRpcBuilder.zkCompute(
+    ZK_CONTRACT,
+    Buffer.from([0x61]), // evaluate shortname
+    BitOutput.serializeBits(out => {
+      out.writeNumber(1, 32) // modelVarId
+      out.writeNumber(2, 32) // sampleVarId
     })
+  )
 
-    console.log("Contract connection verified:", result)
-    return true
-  } catch (error) {
-    console.error("Contract connection failed:", error)
-    throw error
-  }
+  const evaluateTx = await sender.sendAndSign(
+    { address: ZK_CONTRACT, rpc: evaluatePayload },
+    new BN(100000)
+  )
+  console.log(
+    "Evaluate TX:",
+    evaluateTx.transactionPointer.identifier.toString("hex")
+  )
 }
 
-export const testContractConnection = async () => {
-  try {
-    // First verify the connection
-    console.log("Verifying contract connection...")
-    await verifyContractConnection()
-
-    // Try sending some test data
-    console.log("Sending test input...")
-    const testFeatures = [1, 2, 3, 4, 5] // Example u16 values
-    const result = await sendInputToContract(testFeatures)
-
-    console.log("Test input sent successfully:", result)
-
-    // Try reading the personality after input
-    const personality = await client.contract({
-      contract: CONTRACT_ADDRESS,
-      abi: getContractAbi(),
-      functionName: "get_personality",
-      arguments: []
-    })
-
-    console.log("Current personality value:", personality)
-    return true
-  } catch (error) {
-    console.error("Contract test failed:", error)
-    throw error
-  }
-}
+main()
