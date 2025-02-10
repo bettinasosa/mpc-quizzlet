@@ -4,12 +4,11 @@ import React, { useState, useRef, useEffect } from "react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import QuizQuestion from "../components/QuizQuestion"
-import ProgressBar from "../components/ProgressBar"
-import Results from "../components/Results"
-import Logo from "../components/Logo"
-import { QUESTIONS } from "../lib/data/questions"
-import { PartisiaForm } from "@/components/PartisiaForm"
+import QuizQuestion from "@/components/QuizQuestion"
+import ProgressBar from "@/components/ProgressBar"
+import Results from "@/components/Results"
+import Logo from "@/components/Logo"
+import { QUESTIONS } from "@/lib/data/questions"
 
 export default function Quiz() {
   const [answers, setAnswers] = useState<number[]>([])
@@ -60,7 +59,6 @@ export default function Quiz() {
       className="min-h-screen flex items-center justify-center p-8"
       style={{ background }}
     >
-      <PartisiaForm />
       <Card className="w-full max-w-4xl shadow-lg overflow-hidden">
         <CardHeader className="bg-white p-8 border-b sticky top-0 z-10">
           <motion.div

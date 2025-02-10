@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { getPartisiaClient, getContractAbi } from "@/lib/partisia-client"
 import { PERSONALITY_TYPES } from "@/lib/constants"
 
 const CONTRACT_ADDRESS =
@@ -15,30 +14,11 @@ export const usePersonalityContract = () => {
     setError(null)
 
     try {
-      const client = getPartisiaClient()
-      const abi = getContractAbi()
-
       // Scale answers to 0-1000 range for ZK circuit
       const scaledFeatures = answers.map(a => Math.floor((a / 3) * 1000))
 
-      // Submit answers to contract
-      const tx = await client.execute(
-        CONTRACT_ADDRESS,
-        abi.functions.add_input_sample,
-        {
-          features: scaledFeatures
-        }
-      )
-
-      // Wait for transaction to be mined
-      await client.waitForTransaction(tx.transactionHash)
-
-      // Query result
-      const personalityType = await client.query(
-        CONTRACT_ADDRESS,
-        abi.functions.get_personality,
-        {}
-      )
+      //TODO: Submit answers to contract
+      const personalityType = "0"
 
       if (personalityType !== null) {
         setResult(PERSONALITY_TYPES[personalityType])

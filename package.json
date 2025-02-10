@@ -2,13 +2,12 @@
   "name": "my-v0-project",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "upload-model": "ts-node lib/uploadModel.ts"
+    "upload-model": "ts-node --esm lib/uploadModel.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -43,9 +42,12 @@
     "@radix-ui/react-toggle-group": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.1.6",
     "@secata-public/bitmanipulation-ts": "^3.3.0",
+    "add": "^2.0.6",
+    "alert": "^6.0.2",
     "autoprefixer": "^10.4.20",
     "axios": "^1.7.9",
     "bn.js": "^5.2.1",
+    "card": "^2.5.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
@@ -63,6 +65,8 @@
     "react-hook-form": "^7.54.1",
     "react-resizable-panels": "^2.1.7",
     "recharts": "2.15.0",
+    "separator": "^0.1.0",
+    "shadcn-ui": "^0.9.4",
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
