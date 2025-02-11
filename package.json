@@ -54,6 +54,7 @@
     "date-fns": "^3.0.0",
     "elliptic": "^6.6.1",
     "embla-carousel-react": "8.5.1",
+    "ethers": "^6.13.5",
     "framer-motion": "latest",
     "input-otp": "1.4.1",
     "lucide-react": "^0.454.0",

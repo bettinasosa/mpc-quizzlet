@@ -5,7 +5,7 @@ import {
   ZkRpcBuilder,
   RealZkClient
 } from "@partisiablockchain/zk-client"
-import { BlockchainAddress } from "@partisiablockchain/abi-client"
+import { BlockchainAddress, BN } from "@partisiablockchain/abi-client"
 import {
   BlockchainTransactionClient,
   SenderAuthenticationKeyPair
@@ -14,18 +14,17 @@ import {
 import { addModel, Model } from "@/lib/ClassificationCodegen"
 
 const TESTNET_URL = "https://node1.testnet.partisiablockchain.com"
-const CONTRACT_ADDRESS = "03be427dbe748f6e82f16548f28409b18171f09d4d"
-const SENDER_ADDRESS = "00f103c94985d4babb12d23845a37a23d5ee328076"
+const CONTRACT_ADDRESS = process.env.PARTI_CONTRACT_ADDRESS!
+const SENDER_ADDRESS = process.env.PARTI_WALLET_ADDRESS!
 
 export async function uploadModel(modelData: Model) {
   console.log("Uploading model...")
   try {
     const zkClient = new Client(TESTNET_URL)
     const contractState = await zkClient.getContractState(CONTRACT_ADDRESS)
-    console.log("contractState =", contractState)
 
     const authentication = SenderAuthenticationKeyPair.fromString(
-      process.env.PARTISIA_PRIVATE_KEY!
+      process.env.PARTI_PRIVATE_KEY!
     )
     const transactionClient = BlockchainTransactionClient.create(
       TESTNET_URL,
@@ -53,12 +52,13 @@ export async function uploadModel(modelData: Model) {
         address: contractAddr.asString(),
         rpc: payload.rpc
       },
-      17000
+      21100
     )
     const txIdentifier = tx.transactionPointer.identifier
     console.log("Sent input in transaction: " + txIdentifier.toString("hex"))
 
     const realClient = RealZkClient.create(contractAddr.asString(), zkClient)
+    console.log("realClient =", realClient)
 
     const tx_hash = await realClient.sendOffChainInputToNodes(
       contractAddr.asString(),
@@ -66,9 +66,8 @@ export async function uploadModel(modelData: Model) {
       txIdentifier,
       payload.blindedShares
     )
-    console.log("tx_hash =", tx_hash)
 
-    return { success: true, txHash: tx.signedTransaction }
+    return { success: true, txHash: tx.signedTransaction.identifier }
   } catch (error) {
     console.error("Model upload failed:", error)
     return {
