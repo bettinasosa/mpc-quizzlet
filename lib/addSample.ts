@@ -1,28 +1,32 @@
 "use server"
-
 import {
   Client,
   ZkRpcBuilder,
   RealZkClient
 } from "@partisiablockchain/zk-client"
-import { BlockchainAddress } from "@partisiablockchain/abi-client"
 import {
   BlockchainTransactionClient,
   SenderAuthenticationKeyPair
 } from "@partisiablockchain/blockchain-api-transaction-client"
+import { BlockchainAddress } from "@partisiablockchain/abi-client"
 
-import { addModel, Model } from "@/lib/ClassificationCodegen"
+// The helper function from your codegen:
+import {
+  addInputSample,
+  Sample,
+  SecretVarId
+} from "@/lib/ClassificationCodegen"
 
 const TESTNET_URL = "https://node1.testnet.partisiablockchain.com"
 const CONTRACT_ADDRESS = process.env.PARTI_CONTRACT_ADDRESS!
 const SENDER_ADDRESS = process.env.PARTI_WALLET_ADDRESS!
 
-export async function uploadModel(modelData: Model) {
-  console.log("Uploading model...")
+export async function exampleAddSample(
+  modelId: number = 1, // the secret var ID for the model
+  sampleValues: number[] // length = 10
+) {
   try {
     const zkClient = new Client(TESTNET_URL)
-    const contractState = await zkClient.getContractState(CONTRACT_ADDRESS)
-
     const authentication = SenderAuthenticationKeyPair.fromString(
       process.env.PARTI_PRIVATE_KEY!
     )
@@ -32,47 +36,48 @@ export async function uploadModel(modelData: Model) {
     )
 
     const contractAddr = BlockchainAddress.fromString(CONTRACT_ADDRESS)
-    const senderAddr = BlockchainAddress.fromString(SENDER_ADDRESS)
+    const receiverAddr = BlockchainAddress.fromString(SENDER_ADDRESS) // or whomever
 
-    const scalingConversion: number[] = [1000, 1000]
-    const secretInputBuilder = addModel(scalingConversion)
+    // 2. Create the transaction builder for addInputSample
+    const modelIdObject: SecretVarId = { rawId: modelId }
+    const secretInputBuilder = addInputSample(modelIdObject, receiverAddr)
 
-    const builtSecret = secretInputBuilder.secretInput(modelData)
+    // 3. Build the secret payload
+    const mySample: Sample = {
+      values: sampleValues
+    }
+    const builtSecret = secretInputBuilder.secretInput(mySample)
 
     const publicRpc = builtSecret.publicRpc
     const secretBits = builtSecret.secretInput
 
-    console.log("builtSecret =", publicRpc, secretBits)
-
     const payload = ZkRpcBuilder.zkInputOffChain(secretBits, publicRpc)
 
-    // 5) Sign & send the public transaction
     const tx = await transactionClient.signAndSend(
       {
         address: contractAddr.asString(),
         rpc: payload.rpc
       },
-      21100
+      22000 // TODO: test it could be less??
     )
     const txIdentifier = tx.transactionPointer.identifier
-    console.log("Sent input in transaction: " + txIdentifier.toString())
+    console.log("Transaction pointer:", txIdentifier.toString("hex"))
 
     const realClient = RealZkClient.create(contractAddr.asString(), zkClient)
-    console.log("realClient =", realClient)
-
     const tx_hash = await realClient.sendOffChainInputToNodes(
       contractAddr.asString(),
-      senderAddr.asString(),
+      SENDER_ADDRESS,
       txIdentifier,
       payload.blindedShares
     )
+    console.log("Offchain input sent, tx_hash:", tx_hash)
 
-    return { success: true, txHash: tx.signedTransaction.identifier }
+    return { success: true, txHash: tx_hash }
   } catch (error) {
-    console.error("Model upload failed:", error)
+    console.error("Failed to add sample:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error"
+      error: error instanceof Error ? error.message : ""
     }
   }
 }

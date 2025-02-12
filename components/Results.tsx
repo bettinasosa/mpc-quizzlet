@@ -53,7 +53,7 @@ export default function Results({ answers }: ResultsProps) {
       <div className="bg-purple-50 p-6 rounded-lg">
         <h3 className="font-semibold mb-2">How This Works:</h3>
         <p className="text-gray-600">
-          Your answers were processed using Zero-Knowledge Proofs on the
+          Your answers were processed using Multi party computation on the
           Partisia blockchain, ensuring your privacy while determining your
           crypto personality type.
         </p>

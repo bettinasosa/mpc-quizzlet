@@ -74,11 +74,19 @@ function serializeInternalVertex(
 }
 
 export interface LeafVertex {
-  classification: boolean
+  classification: (0 | 1)[]
 }
+
 function serializeLeafVertex(_out: AbiOutput, _value: LeafVertex): void {
   const { classification } = _value
-  _out.writeBoolean(classification)
+  if (classification.length !== 8) {
+    throw new Error("Leaf classification must have 8 bits.")
+  }
+  for (const bit of classification) {
+    // If your Rust is truly [Sbu1; 8], you should do:
+    _out.writeU8(bit)
+    // or if it expects single bits, do `_out.writeBoolean(bit === 1)`.
+  }
 }
 
 export interface SecretVarId {
