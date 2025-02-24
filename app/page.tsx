@@ -16,22 +16,22 @@ export default function Quiz() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(-1)
   const [showResults, setShowResults] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const { submitAnswers } = usePersonalityContract()
+
+  // Create one instance of the hook at the top level.
+  const { submitAnswers, isLoading, error, result, txHash } =
+    usePersonalityContract()
 
   const handleAnswer = (questionIndex: number, answerIndex: number) => {
     const newAnswers = [...answers]
     newAnswers[questionIndex] = answerIndex
     setAnswers(newAnswers)
 
-    if (questionIndex < QUESTIONS.length - 1) {
+    if (questionIndex < Object.keys(QUESTIONS).length - 1) {
       setCurrentQuestionIndex(questionIndex + 1)
     } else {
-      try {
-        submitAnswers(newAnswers)
-        setShowResults(true)
-      } catch (error) {
-        console.error("Error submitting answers:", error)
-      }
+      // Submit the answers and then show results.
+      submitAnswers(newAnswers)
+      setShowResults(true)
     }
   }
 
@@ -93,8 +93,7 @@ export default function Quiz() {
               <p>
                 This quiz uses advanced Multi-Party Computation (MPC) to ensure
                 your answers remain private. Your data is processed securely
-                without exposing individual responses. Learn more about how we
-                protect your privacy at the end of the quiz.
+                without exposing individual responses.
               </p>
             </motion.div>
           )}
@@ -147,7 +146,13 @@ export default function Quiz() {
               </motion.div>
             ))
           ) : (
-            <Results />
+            // Pass the hook state down to the Results component.
+            <Results
+              isLoading={isLoading}
+              result={result}
+              txHash={txHash}
+              error={error}
+            />
           )}
         </CardContent>
         {currentQuestionIndex >= 0 && !showResults && (

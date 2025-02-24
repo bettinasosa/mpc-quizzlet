@@ -21,9 +21,9 @@ export async function submitQuizAnswers(answers: number[]) {
     // Convert the one-hot vector into a personality label as needed
     const personality = convertOneHotToPersonality(result.secretOutput)
     console.log("Quiz result:", personality)
-    return { success: true, personality }
+    return { success: true, personality, txHash: result.txHash! }
   }
-  return result
+  return { success: false, personality: "", txHash: "" }
 }
 
 /**
