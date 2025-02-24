@@ -1,10 +1,7 @@
 import { useState } from "react"
-import { PERSONALITY_TYPES } from "@/lib/constants"
+import { submitQuizAnswers } from "@/app/actions/get-results"
 
-const CONTRACT_ADDRESS =
-  "497d97c67a3a5b7021756993c1575e5a30dfa61e34ed3dcaa879ccba33536f6a"
-
-export const usePersonalityContract = () => {
+export function usePersonalityContract() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<string | null>(null)
@@ -12,19 +9,23 @@ export const usePersonalityContract = () => {
   const submitAnswers = async (answers: number[]) => {
     setIsLoading(true)
     setError(null)
+    setResult(null)
+    console.log("getting results")
 
     try {
-      // Scale answers to 0-1000 range for ZK circuit
-      const scaledFeatures = answers.map(a => Math.floor((a / 3) * 1000))
+      const result = await submitQuizAnswers(answers)
 
-      //TODO: Submit answers to contract
-      const personalityType = "0"
-
-      if (personalityType !== null) {
-        setResult(PERSONALITY_TYPES[personalityType])
+      if (!result.success) {
+        console.log("here")
+        throw new Error("Failed to send answers")
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit answers")
+
+      const personality = result?.personality!
+      setResult(personality || "Unknown personality")
+      console.log(result)
+    } catch (err: any) {
+      console.error(err)
+      setError(err.message || "Failed to submit answers")
     } finally {
       setIsLoading(false)
     }

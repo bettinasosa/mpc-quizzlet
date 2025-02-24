@@ -1,31 +1,33 @@
 "use server"
+
 import {
   Client,
   ZkRpcBuilder,
   RealZkClient
 } from "@partisiablockchain/zk-client"
+import { BlockchainAddress } from "@partisiablockchain/abi-client"
 import {
   BlockchainTransactionClient,
   SenderAuthenticationKeyPair
 } from "@partisiablockchain/blockchain-api-transaction-client"
-import { BlockchainAddress } from "@partisiablockchain/abi-client"
-
-// The helper function from your codegen:
-import {
-  addInputSample,
-  Sample,
-  SecretVarId
-} from "@/lib/ClassificationCodegen"
+import { pollForSecretOutput } from "./helpers"
 
 const TESTNET_URL = "https://node1.testnet.partisiablockchain.com"
 const CONTRACT_ADDRESS = process.env.PARTI_CONTRACT_ADDRESS!
 const SENDER_ADDRESS = process.env.PARTI_WALLET_ADDRESS!
 
-export async function exampleAddSample(
-  modelId: number = 1, // the secret var ID for the model
-  sampleValues: number[] // length = 10
-) {
+export async function sendZkInput(
+  secretInputBuilder: any,
+  inputData: any,
+  fee: number = 18770
+): Promise<{
+  success: boolean
+  txHash?: string
+  secretOutput?: any
+  error?: string
+}> {
   try {
+    // Initialize the zk client and transaction client.
     const zkClient = new Client(TESTNET_URL)
     const authentication = SenderAuthenticationKeyPair.fromString(
       process.env.PARTI_PRIVATE_KEY!
@@ -36,48 +38,51 @@ export async function exampleAddSample(
     )
 
     const contractAddr = BlockchainAddress.fromString(CONTRACT_ADDRESS)
-    const receiverAddr = BlockchainAddress.fromString(SENDER_ADDRESS) // or whomever
+    const senderAddr = BlockchainAddress.fromString(SENDER_ADDRESS)
 
-    // 2. Create the transaction builder for addInputSample
-    const modelIdObject: SecretVarId = { rawId: modelId }
-    const secretInputBuilder = addInputSample(modelIdObject, receiverAddr)
-
-    // 3. Build the secret payload
-    const mySample: Sample = {
-      values: sampleValues
-    }
-    const builtSecret = secretInputBuilder.secretInput(mySample)
-
+    // Build the secret input using the provided builder and data.
+    const builtSecret = secretInputBuilder.secretInput(inputData)
     const publicRpc = builtSecret.publicRpc
     const secretBits = builtSecret.secretInput
 
+    // Create the off-chain payload (public RPC and blinded secret shares)
     const payload = ZkRpcBuilder.zkInputOffChain(secretBits, publicRpc)
 
+    // Sign and send the public transaction.
     const tx = await transactionClient.signAndSend(
       {
         address: contractAddr.asString(),
         rpc: payload.rpc
       },
-      22000 // TODO: test it could be less??
+      fee
     )
     const txIdentifier = tx.transactionPointer.identifier
-    console.log("Transaction pointer:", txIdentifier.toString("hex"))
+    console.log("Sent input in transaction:", txIdentifier.toString())
 
+    // Create a RealZkClient to send off-chain secret shares.
     const realClient = RealZkClient.create(contractAddr.asString(), zkClient)
-    const tx_hash = await realClient.sendOffChainInputToNodes(
+    await realClient.sendOffChainInputToNodes(
       contractAddr.asString(),
-      SENDER_ADDRESS,
+      senderAddr.asString(),
       txIdentifier,
       payload.blindedShares
     )
-    console.log("Offchain input sent, tx_hash:", tx_hash)
 
-    return { success: true, txHash: tx_hash }
+    console.log("sent off-chain input to nodes...")
+
+    // Instead of waitForSecretOutput, poll for the secret output.
+    const secretOutput = await pollForSecretOutput(realClient, txIdentifier)
+
+    return {
+      success: true,
+      txHash: txIdentifier,
+      secretOutput
+    }
   } catch (error) {
-    console.error("Failed to add sample:", error)
+    console.error("sendZkInput failed:", error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : ""
+      error: error instanceof Error ? error.message : "Unknown error"
     }
   }
 }

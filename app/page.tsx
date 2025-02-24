@@ -9,12 +9,31 @@ import ProgressBar from "@/components/ProgressBar"
 import Results from "@/components/Results"
 import Logo from "@/components/Logo"
 import { QUESTIONS } from "@/lib/data/questions"
+import { usePersonalityContract } from "@/hooks/usePersonalityContract"
 
 export default function Quiz() {
   const [answers, setAnswers] = useState<number[]>([])
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(-1)
   const [showResults, setShowResults] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const { submitAnswers } = usePersonalityContract()
+
+  const handleAnswer = (questionIndex: number, answerIndex: number) => {
+    const newAnswers = [...answers]
+    newAnswers[questionIndex] = answerIndex
+    setAnswers(newAnswers)
+
+    if (questionIndex < QUESTIONS.length - 1) {
+      setCurrentQuestionIndex(questionIndex + 1)
+    } else {
+      try {
+        submitAnswers(newAnswers)
+        setShowResults(true)
+      } catch (error) {
+        console.error("Error submitting answers:", error)
+      }
+    }
+  }
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -30,18 +49,6 @@ export default function Quiz() {
       "linear-gradient(135deg, #ff0844 0%, #ffb199 100%)"
     ]
   )
-
-  const handleAnswer = (questionIndex: number, answerIndex: number) => {
-    const newAnswers = [...answers]
-    newAnswers[questionIndex] = answerIndex
-    setAnswers(newAnswers)
-
-    if (questionIndex < Object.keys(QUESTIONS).length - 1) {
-      setCurrentQuestionIndex(questionIndex + 1)
-    } else {
-      setShowResults(true)
-    }
-  }
 
   useEffect(() => {
     if (containerRef.current) {
@@ -140,7 +147,7 @@ export default function Quiz() {
               </motion.div>
             ))
           ) : (
-            <Results answers={answers} />
+            <Results />
           )}
         </CardContent>
         {currentQuestionIndex >= 0 && !showResults && (

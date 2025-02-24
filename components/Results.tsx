@@ -1,21 +1,13 @@
 "use client"
-
-import { useEffect } from "react"
-import { motion } from "framer-motion"
-import { usePersonalityContract } from "@/hooks/usePersonalityContract"
-import { Button } from "@/components/ui/button"
+import React from "react"
 import { Loader2 } from "lucide-react"
+import { usePersonalityContract } from "@/hooks/usePersonalityContract"
+import PersonalityCard from "./PersonalityCard"
 
-interface ResultsProps {
-  answers: number[]
-}
-
-export default function Results({ answers }: ResultsProps) {
-  const { submitAnswers, isLoading, error, result } = usePersonalityContract()
-
-  useEffect(() => {
-    submitAnswers(answers)
-  }, [answers])
+export default function Results() {
+  const { isLoading, result } = usePersonalityContract()
+  console.log("is loading...", isLoading)
+  console.log("result", result)
 
   if (isLoading) {
     return (
@@ -28,36 +20,26 @@ export default function Results({ answers }: ResultsProps) {
     )
   }
 
-  if (error) {
+  if (result) {
     return (
       <div className="text-center p-8">
-        <p className="text-red-500 mb-4">Error: {error}</p>
-        <Button onClick={() => submitAnswers(answers)}>Try Again</Button>
+        <h2 className="text-2xl font-bold mb-4">Your Crypto Personality:</h2>
+        <PersonalityCard personality={result} />
+        <div className="bg-purple-50 p-6 rounded-lg">
+          <h3 className="font-semibold mb-2">How This Works:</h3>
+          <p className="text-gray-600">
+            Your answers were processed using advanced MPC on the Partisia
+            blockchain, keeping your data private while determining your
+            personality.
+          </p>
+        </div>
       </div>
     )
   }
 
-  if (!result) {
-    return null
-  }
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="text-center p-8"
-    >
-      <h2 className="text-2xl font-bold mb-4">Your Crypto Personality:</h2>
-      <p className="text-xl text-purple-600 mb-6">{result}</p>
-
-      <div className="bg-purple-50 p-6 rounded-lg">
-        <h3 className="font-semibold mb-2">How This Works:</h3>
-        <p className="text-gray-600">
-          Your answers were processed using Multi party computation on the
-          Partisia blockchain, ensuring your privacy while determining your
-          crypto personality type.
-        </p>
-      </div>
-    </motion.div>
+    <div className="p-8 text-center">
+      <p>No result found yet.</p>
+    </div>
   )
 }

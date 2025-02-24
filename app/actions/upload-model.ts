@@ -21,7 +21,6 @@ export async function uploadModel(modelData: Model) {
   console.log("Uploading model...")
   try {
     const zkClient = new Client(TESTNET_URL)
-    const contractState = await zkClient.getContractState(CONTRACT_ADDRESS)
 
     const authentication = SenderAuthenticationKeyPair.fromString(
       process.env.PARTI_PRIVATE_KEY!

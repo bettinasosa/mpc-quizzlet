@@ -14,7 +14,7 @@ export default function QuizQuestion({
   questionIndex,
   selectedAnswer,
   onAnswer,
-  isCurrent,
+  isCurrent
 }: QuizQuestionProps) {
   const getEmoji = (text: string) => {
     const emojiMap: { [key: string]: string } = {
@@ -41,7 +41,7 @@ export default function QuizQuestion({
       governance: "🗳️",
       win: "🏆",
       exploits: "🚨",
-      taxes: "📊",
+      taxes: "📊"
     }
     for (const [key, emoji] of Object.entries(emojiMap)) {
       if (text.toLowerCase().includes(key.toLowerCase())) {
@@ -82,4 +82,3 @@ export default function QuizQuestion({
     </motion.div>
   )
 }
-
