@@ -5,6 +5,25 @@ import {
 import { CompactBitArray } from "@secata-public/bitmanipulation-ts"
 
 /**
+ * Helper: scans a Uint8Array (the raw secret data) and returns the first valid one-hot vector.
+ * A valid one-hot vector is an array of 8 numbers (0 or 1) with exactly one '1'.
+ */
+function extractValidOneHot(data: Uint8Array): number[] | null {
+  for (let j = 0; j < data.length; j++) {
+    const byte = data[j]
+    const bits: number[] = []
+    for (let i = 0; i < 8; i++) {
+      bits.push((byte >> i) & 1)
+    }
+    // Check if exactly one bit is set
+    if (bits.filter(bit => bit === 1).length === 1) {
+      return bits
+    }
+  }
+  return null
+}
+
+/**
  * Polls for the secret output associated with a transaction identifier.
  * This function repeatedly checks (every pollInterval milliseconds) whether
  * the secret output is available, timing out after the specified timeout.
@@ -24,36 +43,35 @@ export async function pollForSecretOutput(
 ): Promise<number[]> {
   const startTime = Date.now()
   while (Date.now() - startTime < timeout) {
-    // Reconstruct the secret using your private key.
     const owner = CryptoUtils.privateKeyToKeypair(
       process.env.PARTI_PRIVATE_KEY!
     )
+    // Call fetchSecretVariable with a SignatureProviderKeyPair and the secret variable index (here: 1)
     const reconstructedSecret: CompactBitArray =
       await realClient.fetchSecretVariable(
         new SignatureProviderKeyPair(owner),
         1
       )
 
-    // Ensure we have data.
     const data = reconstructedSecret.data
-    if (!data || data.length === 0) {
-      await new Promise(resolve => setTimeout(resolve, pollInterval))
-      continue
+    console.log("Raw secret data (hex):", Buffer.from(data).toString("hex"))
+
+    if (data && data.length > 0) {
+      const lastByte = data[data.length - 1]
+      const oneHotArray: number[] = []
+      for (let i = 0; i < 8; i++) {
+        oneHotArray.push((lastByte >> i) & 1)
+      }
+      console.log("One-hot from last byte:", oneHotArray)
     }
 
-    // Assume the one-hot encoding is stored in the first byte.
-    const firstByte = data[0]
-    const oneHotArray: number[] = []
-    for (let i = 0; i < 8; i++) {
-      oneHotArray.push((firstByte >> i) & 1)
+    if (data && data.length > 0) {
+      const oneHot = extractValidOneHot(data)
+      if (oneHot) {
+        console.log("Extracted one-hot vector:", oneHot)
+        return oneHot
+      }
     }
-    console.log("oneHotArray:", oneHotArray)
-
-    // If the array has exactly one bit set, consider it valid.
-    if (oneHotArray.filter(bit => bit === 1).length === 1) {
-      return oneHotArray
-    }
-
     // Wait before polling again.
     await new Promise(resolve => setTimeout(resolve, pollInterval))
   }
