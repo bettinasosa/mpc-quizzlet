@@ -12,5 +12,4 @@ export interface PersonalityResult {
   image: string
 }
 
-export type AnswerData = Record<number, number>
-
+export type AnswerData = number[]

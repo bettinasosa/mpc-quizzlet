@@ -21,7 +21,7 @@ export function usePersonalityContract() {
       }
 
       setResult(res.personality || "Unknown personality")
-      setTxHash(res.txHash) // assume submitQuizAnswers returns { txHash, personality, success }
+      setTxHash(res.txHash)
       console.log("result:", res)
     } catch (err: any) {
       console.error(err)

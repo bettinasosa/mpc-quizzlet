@@ -5,19 +5,21 @@ import { AnimatePresence } from "framer-motion"
 import { QUESTIONS } from "./data"
 import type { AnswerData } from "./types"
 import { simulateMPCComputation } from "./utils"
-import QuizCard from "./components/quiz-card"
-import HolographicBackground from "./components/holographic-background"
-import FloatingCryptoSymbols from "./components/floating-crypto-symbols"
+import QuizCard from "./components/QuizCard"
+import HolographicBackground from "./components/HolographicBackground"
+import FloatingCryptoSymbols from "./components/FloatingCryptoSymbols"
+import { usePersonalityContract } from "@/hooks/usePersonalityContract"
 
 export default function CryptoQuiz() {
   const [stage, setStage] = useState<
     "welcome" | "questions" | "loading" | "results"
   >("welcome")
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [answers, setAnswers] = useState<AnswerData>({})
+  const [answers, setAnswers] = useState<AnswerData>([])
   const [personalityResult, setPersonalityResult] = useState<string>("")
   const isMounted = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const { submitAnswers } = usePersonalityContract()
 
   useEffect(() => {
     isMounted.current = true
@@ -28,20 +30,27 @@ export default function CryptoQuiz() {
 
   const handleStart = () => {
     setStage("questions")
-    // Scroll to top when starting the quiz
     if (containerRef.current) {
       containerRef.current.scrollTo({ top: 0, behavior: "smooth" })
     }
   }
 
-  const handleAnswer = (answerIndex: number) => {
-    const newAnswers = { ...answers, [currentQuestionIndex]: answerIndex }
+  const handleAnswer = async (answerIndex: number) => {
+    const newAnswers = { ...answers, answerIndex }
     setAnswers(newAnswers)
 
     if (currentQuestionIndex < QUESTIONS.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1)
     } else {
       setStage("loading")
+      const res = await submitAnswers(newAnswers)
+      if (res.success) {
+        setPersonalityResult(res.personality)
+        setStage("results")
+      } else {
+        setError(res.error)
+      }
+
       simulateMPCComputation(newAnswers).then(result => {
         if (isMounted.current) {
           setPersonalityResult(result)

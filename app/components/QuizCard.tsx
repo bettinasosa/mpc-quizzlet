@@ -6,7 +6,6 @@ import WelcomeScreen from "./welcome-screen"
 import QuestionScreen from "./question-screen"
 import LoadingScreen from "./loading-screen"
 import ResultsScreen from "./results-screen"
-import GlitchEffect from "./glitch-effect"
 
 interface QuizCardProps {
   stage: "welcome" | "questions" | "loading" | "results"
@@ -52,15 +51,14 @@ export default function QuizCard({
 
         <div className="relative backdrop-blur-3xl rounded-3xl p-8">
           <div className="text-center mb-8">
-            <GlitchEffect>
-              <motion.h1
-                initial={{ y: -20 }}
-                animate={{ y: 0 }}
-                className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-fuchsia-500 to-indigo-400 mb-2"
-              >
-                MPC Crypto Personalities
-              </motion.h1>
-            </GlitchEffect>
+            <motion.h1
+              initial={{ y: -20 }}
+              animate={{ y: 0 }}
+              className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-fuchsia-500 to-indigo-400 mb-2"
+            >
+              MPC Crypto Personalities
+            </motion.h1>
+
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

@@ -52,7 +52,7 @@ export default function UploadPage() {
   ],
   "leaves": [
     {
-      "classification": [1, 0, 0, 0, 0, 0, 0, 0]
+      "classification": 126
     },
     // ... exactly 8 leaf vertices
   ]

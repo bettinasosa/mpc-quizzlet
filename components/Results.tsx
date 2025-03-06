@@ -68,7 +68,7 @@ export default function Results({
   if (result) {
     return (
       <div className="text-center p-8 space-y-8">
-        <h2 className="text-3xl font-bold text-gray-800">
+        <h2 className="text-2xl font-bold text-gray-800">
           Your Crypto Personality:
         </h2>
         <PersonalityCard personality={result} />

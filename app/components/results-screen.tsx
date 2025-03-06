@@ -260,7 +260,7 @@ export default function ResultsScreen({
       <motion.h2
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="text-3xl font-bold text-center text-white"
+        className="text-2xl font-bold text-center text-white"
       >
         Your Crypto Personality:
       </motion.h2>

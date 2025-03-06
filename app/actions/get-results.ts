@@ -18,18 +18,31 @@ export async function submitQuizAnswers(answers: number[]) {
 
   const result = await sendZkInput(secretInputBuilder, inputData)
   if (result.success && result.secretOutput) {
-    // Convert the one-hot vector into a personality label as needed
     const personality = convertOneHotToPersonality(result.secretOutput)
     console.log("Quiz result:", personality)
     return { success: true, personality, txHash: result.txHash! }
   }
+
   return { success: false, personality: "", txHash: "" }
 }
 
 /**
- * Helper to translate a one-hot array into a personality label.
+ * Converts a one-hot representation into a personality label.
+ * It accepts either an array of bits (e.g. [1,0,0,0,0,0,0,0]) or a single number bitmask (e.g. 128).
  */
-function convertOneHotToPersonality(oneHot: number[]): string {
+function convertOneHotToPersonality(oneHot: number[] | number): string {
+  let bitArray: number[]
+
+  if (typeof oneHot === "number") {
+    // Convert the bitmask into an array of 8 bits
+    bitArray = []
+    for (let i = 0; i < 8; i++) {
+      bitArray.push((oneHot >> i) & 1)
+    }
+  } else {
+    bitArray = oneHot
+  }
+
   const personalityMapping = [
     "HODLer",
     "Degen",
@@ -40,6 +53,7 @@ function convertOneHotToPersonality(oneHot: number[]): string {
     "Influencer",
     "Trader"
   ]
-  const index = oneHot.findIndex(bit => bit === 1)
+
+  const index = bitArray.findIndex(bit => bit === 1)
   return index >= 0 ? personalityMapping[index] : "Unknown"
 }
