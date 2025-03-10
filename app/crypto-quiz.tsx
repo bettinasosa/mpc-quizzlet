@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useRef } from "react"
 import { AnimatePresence } from "framer-motion"
-import { QUESTIONS } from "./data"
+import { QUESTIONS } from "../lib/data/data"
 import type { AnswerData } from "./types"
-import { simulateMPCComputation } from "./utils"
 import QuizCard from "./components/QuizCard"
 import HolographicBackground from "./components/HolographicBackground"
 import FloatingCryptoSymbols from "./components/FloatingCryptoSymbols"
@@ -19,7 +18,7 @@ export default function CryptoQuiz() {
   const [personalityResult, setPersonalityResult] = useState<string>("")
   const isMounted = useRef(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const { submitAnswers } = usePersonalityContract()
+  const { submitAnswers, result } = usePersonalityContract()
 
   useEffect(() => {
     isMounted.current = true
@@ -36,7 +35,8 @@ export default function CryptoQuiz() {
   }
 
   const handleAnswer = async (answerIndex: number) => {
-    const newAnswers = { ...answers, answerIndex }
+    // Compute the new answers array
+    const newAnswers = [...answers, answerIndex]
     setAnswers(newAnswers)
 
     if (currentQuestionIndex < QUESTIONS.length - 1) {
@@ -48,15 +48,8 @@ export default function CryptoQuiz() {
         setPersonalityResult(res.personality)
         setStage("results")
       } else {
-        setError(res.error)
+        console.error("Failed to submit answers")
       }
-
-      simulateMPCComputation(newAnswers).then(result => {
-        if (isMounted.current) {
-          setPersonalityResult(result)
-          setStage("results")
-        }
-      })
     }
   }
 

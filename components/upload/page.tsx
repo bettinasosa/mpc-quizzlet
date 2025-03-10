@@ -1,4 +1,4 @@
-import { ModelUpload } from "@/components/ModelUpload"
+import { ModelUpload } from "@/components/upload/ModelUpload"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"

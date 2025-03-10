@@ -30,8 +30,8 @@ export default function ParticleBackground() {
       color: string
 
       constructor() {
-        this.x = Math.random() * canvas.width
-        this.y = Math.random() * canvas.height
+        this.x = Math.random() * canvas!.width
+        this.y = Math.random() * canvas!.height
         this.size = Math.random() * 3
         this.speedX = Math.random() * 3 - 1.5
         this.speedY = Math.random() * 3 - 1.5
@@ -44,10 +44,10 @@ export default function ParticleBackground() {
         this.x += this.speedX
         this.y += this.speedY
 
-        if (this.x > canvas.width) this.x = 0
-        if (this.x < 0) this.x = canvas.width
-        if (this.y > canvas.height) this.y = 0
-        if (this.y < 0) this.y = canvas.height
+        if (this.x > canvas!.width) this.x = 0
+        if (this.x < 0) this.x = canvas!.width
+        if (this.y > canvas!.height) this.y = 0
+        if (this.y < 0) this.y = canvas!.height
       }
 
       draw() {
@@ -68,9 +68,9 @@ export default function ParticleBackground() {
     function animate() {
       if (!ctx) return
       ctx.fillStyle = "rgba(0, 0, 0, 0.05)"
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.fillRect(0, 0, canvas!.width, canvas!.height)
 
-      particles.forEach((particle) => {
+      particles.forEach(particle => {
         particle.update()
         particle.draw()
       })
@@ -90,10 +90,11 @@ export default function ParticleBackground() {
       <canvas
         ref={canvasRef}
         className="fixed inset-0 w-full h-full"
-        style={{ background: "linear-gradient(to bottom right, #000000, #1a1a2e)" }}
+        style={{
+          background: "linear-gradient(to bottom right, #000000, #1a1a2e)"
+        }}
       />
       <div className="fixed inset-0 bg-gradient-to-br from-purple-900/20 to-blue-900/20" />
     </>
   )
 }
-

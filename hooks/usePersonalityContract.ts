@@ -7,7 +7,9 @@ export function usePersonalityContract() {
   const [result, setResult] = useState<string | null>(null)
   const [txHash, setTxHash] = useState<string | null>(null)
 
-  const submitAnswers = async (answers: number[]) => {
+  const submitAnswers = async (
+    answers: number[]
+  ): Promise<{ success: boolean; personality: string; txHash: string }> => {
     setIsLoading(true)
     setError(null)
     setResult(null)
@@ -23,9 +25,11 @@ export function usePersonalityContract() {
       setResult(res.personality || "Unknown personality")
       setTxHash(res.txHash)
       console.log("result:", res)
+      return res
     } catch (err: any) {
       console.error(err)
       setError(err.message || "Failed to submit answers")
+      return { success: false, personality: "", txHash: "" }
     } finally {
       setIsLoading(false)
     }

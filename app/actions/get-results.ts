@@ -11,7 +11,7 @@ export async function submitQuizAnswers(answers: number[]) {
 
   const senderAddr = BlockchainAddress.fromString(SENDER_ADDRESS)
 
-  const modelId: SecretVarId = { rawId: 1 }
+  const modelId: SecretVarId = { rawId: 3 }
   const secretInputBuilder = addInputSample(modelId, senderAddr)
 
   const inputData = { values: answers }
@@ -28,21 +28,9 @@ export async function submitQuizAnswers(answers: number[]) {
 
 /**
  * Converts a one-hot representation into a personality label.
- * It accepts either an array of bits (e.g. [1,0,0,0,0,0,0,0]) or a single number bitmask (e.g. 128).
+ * It accepts an array of bits (e.g. [1,0,0,0,0,0,0,0])
  */
-function convertOneHotToPersonality(oneHot: number[] | number): string {
-  let bitArray: number[]
-
-  if (typeof oneHot === "number") {
-    // Convert the bitmask into an array of 8 bits
-    bitArray = []
-    for (let i = 0; i < 8; i++) {
-      bitArray.push((oneHot >> i) & 1)
-    }
-  } else {
-    bitArray = oneHot
-  }
-
+function convertOneHotToPersonality(oneHot: number[]): string {
   const personalityMapping = [
     "HODLer",
     "Degen",
@@ -53,7 +41,6 @@ function convertOneHotToPersonality(oneHot: number[] | number): string {
     "Influencer",
     "Trader"
   ]
-
-  const index = bitArray.findIndex(bit => bit === 1)
+  const index = oneHot.findIndex(bit => bit === 1)
   return index >= 0 ? personalityMapping[index] : "Unknown"
 }

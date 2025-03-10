@@ -1,12 +1,12 @@
 import type { AnswerData } from "./types"
-import { personalityData } from "./data"
+import { personalityData } from "../lib/data/data"
 
 // This is a simplified algorithm - in a real app, you'd have a more sophisticated scoring system
 export function calculatePersonality(answers: AnswerData): string {
   // Count the frequency of each answer index (0-3)
   const answerCounts = [0, 0, 0, 0]
 
-  Object.values(answers).forEach((answerIndex) => {
+  Object.values(answers).forEach(answerIndex => {
     answerCounts[answerIndex]++
   })
 
@@ -28,10 +28,9 @@ export function calculatePersonality(answers: AnswerData): string {
 
 // Simulate MPC computation with a delay
 export function simulateMPCComputation(answers: AnswerData): Promise<string> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     setTimeout(() => {
       resolve(calculatePersonality(answers))
     }, 3000) // 3 second delay to simulate computation
   })
 }
-

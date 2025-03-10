@@ -1,21 +1,21 @@
 {
   "internals": [
     { "feature": 0, "threshold": 1 },
-    { "feature": 1, "threshold": 1 },
-    { "feature": 2, "threshold": 2 },
+    { "feature": 1, "threshold": 0 },
+    { "feature": 2, "threshold": 0 },
     { "feature": 3, "threshold": 1 },
     { "feature": 4, "threshold": 1 },
     { "feature": 5, "threshold": 1 },
     { "feature": 6, "threshold": 1 }
   ],
   "leaves": [
-    { "classification": 128 },
-    { "classification": 64 },
-    { "classification": 32 },
-    { "classification": 16 },
-    { "classification": 8 },
-    { "classification": 4 },
-    { "classification": 2 },
-    { "classification": 1 }
+    { "classification": [1, 0, 0, 0, 0, 0, 0, 0] },
+    { "classification": [0, 1, 0, 0, 0, 0, 0, 0] },
+    { "classification": [0, 0, 1, 0, 0, 0, 0, 0] },
+    { "classification": [0, 0, 0, 1, 0, 0, 0, 0] },
+    { "classification": [0, 0, 0, 0, 1, 0, 0, 0] },
+    { "classification": [0, 0, 0, 0, 0, 1, 0, 0] },
+    { "classification": [0, 0, 0, 0, 0, 0, 1, 0] },
+    { "classification": [0, 0, 0, 0, 0, 0, 0, 1] }
   ]
 }

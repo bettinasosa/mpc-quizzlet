@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
-import { personalityData } from "../data"
+import { personalityData } from "../../lib/data/data"
 import CyberButton from "./CyberButton"
 
 interface ResultsScreenProps {

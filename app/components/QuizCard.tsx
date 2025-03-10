@@ -2,10 +2,10 @@
 
 import { motion, AnimatePresence } from "framer-motion"
 import type { Question } from "../types"
-import WelcomeScreen from "./welcome-screen"
-import QuestionScreen from "./question-screen"
-import LoadingScreen from "./loading-screen"
-import ResultsScreen from "./results-screen"
+import WelcomeScreen from "./WelcomeScreen"
+import QuestionScreen from "./QuestionScreen"
+import LoadingScreen from "./LoadingScreen"
+import ResultsScreen from "./ResultsScreen"
 
 interface QuizCardProps {
   stage: "welcome" | "questions" | "loading" | "results"
