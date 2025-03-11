@@ -181,7 +181,7 @@ export default function ResultsView({ result, onReset }: ResultsViewProps) {
                 Verified on Partisia Blockchain
               </p>
               <a
-                href={`https://explorer.partisiablockchain.com/transaction/${txHash}`}
+                href={`https://browser.testnet.partisiablockchain.com/transactions/${txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 text-sm font-mono bg-neutral-100 dark:bg-neutral-800 px-3 py-1 rounded hover:underline"

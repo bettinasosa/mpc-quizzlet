@@ -10,6 +10,7 @@ import {
   BlockchainTransactionClient,
   SenderAuthenticationKeyPair
 } from "@partisiablockchain/blockchain-api-transaction-client"
+import { deserializeState } from "./ClassificationCodegen"
 
 const TESTNET_URL = "https://node1.testnet.partisiablockchain.com"
 const CONTRACT_ADDRESS = process.env.PARTI_CONTRACT_ADDRESS!
@@ -80,11 +81,13 @@ export async function sendZkInput(
     const contractState = await zkClient.getContractState(
       contractAddr.asString()
     )
+
     // console.log("Contract state:", contractState)
 
     const stateBytes = contractState?.serializedContract
 
-    const oneHot = await extractOpenOneHot(stateBytes)
+    const finalVar = stateBytes?.variables[stateBytes.variables.length - 2]
+    const oneHot = await extractFinalOneHot(finalVar)
     console.log("One hot:", oneHot)
 
     return { success: true, txHash: txIdentifier, secretOutput: oneHot }
@@ -97,35 +100,40 @@ export async function sendZkInput(
   }
 }
 
-export async function extractOpenOneHot(state: any): Promise<number[]> {
-  const finalVar = state.variables[state.variables.length - 2]
-
-  console.log("Final variable:", finalVar)
-  if (!finalVar.value || !finalVar.value.maskedInputShare.data) {
-    throw new Error("Final variable does not contain data")
+export async function extractFinalOneHot(finalVar: any): Promise<number[]> {
+  if (
+    !finalVar.value ||
+    !finalVar.value.maskedInputShare ||
+    !finalVar.value.maskedInputShare.data
+  ) {
+    throw new Error("Final variable does not contain maskedInputShare.data")
   }
 
-  const dataBase64: string = finalVar.value.maskedInputShare.data
+  // Get the base64 string from the variable.
+  const base64Data: string = finalVar.value.maskedInputShare.data
 
-  const dataBytes = Buffer.from(dataBase64, "base64")
-
+  // Decode the base64 string into a Buffer.
+  const dataBytes = Buffer.from(base64Data, "base64")
   console.log("Final variable data (hex):", dataBytes.toString("hex"))
 
-  const alternate = Buffer.from(
-    finalVar.value.maskedInputShare.data.toString("hex")
-  )
+  // Verify the expected length; for shareBitLengths of 232, expect 29 bytes.
+  console.log("Data length (bytes):", dataBytes.length)
 
-  const oneHotBytes = dataBase64.slice(dataBase64.length - 8)
+  // Extract the final 8 bytes which represent the one-hot vector.
+  const oneHotBuffer = dataBytes.slice(32, 32 + 8)
+  const deserialized = deserializeState(dataBytes)
+  console.log("Deserialized:", deserialized)
 
-  const oneHot = Array.from(dataBytes.slice(dataBytes.length - 8)).map(b =>
-    b === 1 ? 1 : 0
-  )
+  const packed = dataBytes.readUInt8(8) // adjust offset accordingly
+  const oneHot1 = []
+  for (let i = 0; i < 8; i++) {
+    oneHot1.push((packed >> i) & 1)
+  }
+  console.log("Extracted final one-hot vector:", oneHot1)
 
-  const alternateOneHot = Array.from(alternate.slice(alternate.length - 8)).map(
-    b => (b === 1 ? 1 : 0)
-  )
-
+  // Map each byte to 1 if it is exactly 1, else 0.
+  const oneHot = Array.from(oneHotBuffer).map(b => (b === 1 ? 1 : 0))
   console.log("Extracted final one-hot vector:", oneHot)
-  console.log("Extracted alternate one-hot vector:", alternateOneHot)
+
   return oneHot
 }

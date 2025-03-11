@@ -42,5 +42,5 @@ function convertOneHotToPersonality(oneHot: number[]): string {
     "Trader"
   ]
   const index = oneHot.findIndex(bit => bit === 1)
-  return index >= 0 ? personalityMapping[index] : "Unknown"
+  return index >= 0 ? personalityMapping[index] : "Crypto enthusiast"
 }
