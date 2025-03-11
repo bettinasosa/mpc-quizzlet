@@ -114,22 +114,9 @@ export async function extractFinalOneHot(finalVar: any): Promise<number[]> {
 
   // Decode the base64 string into a Buffer.
   const dataBytes = Buffer.from(base64Data, "base64")
-  console.log("Final variable data (hex):", dataBytes.toString("hex"))
-
-  // Verify the expected length; for shareBitLengths of 232, expect 29 bytes.
-  console.log("Data length (bytes):", dataBytes.length)
 
   // Extract the final 8 bytes which represent the one-hot vector.
   const oneHotBuffer = dataBytes.slice(32, 32 + 8)
-  const deserialized = deserializeState(dataBytes)
-  console.log("Deserialized:", deserialized)
-
-  const packed = dataBytes.readUInt8(8) // adjust offset accordingly
-  const oneHot1 = []
-  for (let i = 0; i < 8; i++) {
-    oneHot1.push((packed >> i) & 1)
-  }
-  console.log("Extracted final one-hot vector:", oneHot1)
 
   // Map each byte to 1 if it is exactly 1, else 0.
   const oneHot = Array.from(oneHotBuffer).map(b => (b === 1 ? 1 : 0))

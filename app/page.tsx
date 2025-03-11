@@ -243,7 +243,7 @@ export default function LandingPage() {
                       Partisia Blockchain <ExternalLink className="h-4 w-4" />
                     </a>
                     <a
-                      href="https://partisiablockchain.com/docs"
+                      href="https://partisiablockchain.gitlab.io/documentation/smart-contracts/introduction-to-smart-contracts.html"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-colors"
@@ -252,12 +252,20 @@ export default function LandingPage() {
                       <ExternalLink className="h-4 w-4" />
                     </a>
                     <a
-                      href="https://partisiablockchain.com/mpc"
+                      href="https://partisiablockchain.gitlab.io/documentation/pbc-fundamentals/mpc-token-model-and-account-elements.html"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-colors"
                     >
                       Learn about MPC <ExternalLink className="h-4 w-4" />
+                    </a>
+                    <a
+                      href="https://partisiablockchain.gitlab.io/documentation/smart-contracts/machine-learning/machine-learning-on-pbc.html"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-colors"
+                    >
+                      Build AI on Partisia <ExternalLink className="h-4 w-4" />
                     </a>
                   </div>
                 </div>
