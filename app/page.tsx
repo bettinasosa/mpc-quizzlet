@@ -328,29 +328,6 @@ export default function LandingPage() {
               © {new Date().getFullYear()} Crypto Personality Quiz | Powered by
               Partisia Blockchain | Beta Version 0.1
             </p>
-
-            <div className="flex gap-6">
-              <Link
-                href="#"
-                className="text-sm text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-colors"
-              >
-                Privacy
-              </Link>
-              <Link
-                href="#"
-                className="text-sm text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-colors"
-              >
-                Terms
-              </Link>
-              <a
-                href="https://partisiablockchain.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white transition-colors"
-              >
-                Partisia Blockchain
-              </a>
-            </div>
           </div>
         </div>
       </footer>
