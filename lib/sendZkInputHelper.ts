@@ -10,7 +10,6 @@ import {
   BlockchainTransactionClient,
   SenderAuthenticationKeyPair
 } from "@partisiablockchain/blockchain-api-transaction-client"
-import { pollForSecretOutput } from "./helpers"
 
 const TESTNET_URL = "https://node1.testnet.partisiablockchain.com"
 const CONTRACT_ADDRESS = process.env.PARTI_CONTRACT_ADDRESS!
@@ -67,17 +66,28 @@ export async function sendZkInput(
       txIdentifier,
       payload.blindedShares
     )
+    console.log("Sent off-chain input to nodes...")
 
-    console.log("sent off-chain input to nodes...")
+    // Wait for events from the transaction.
+    const events = await transactionClient.waitForSpawnedEvents(tx)
+    console.log(
+      "Events received:",
+      events.events,
+      events.events[0].executionStatus,
+      events.events[0].content
+    )
 
-    // Instead of waitForSecretOutput, poll for the secret output.
-    const secretOutput = await pollForSecretOutput(realClient, txIdentifier)
+    const contractState = await zkClient.getContractState(
+      contractAddr.asString()
+    )
+    // console.log("Contract state:", contractState)
 
-    return {
-      success: true,
-      txHash: txIdentifier,
-      secretOutput
-    }
+    const stateBytes = contractState?.serializedContract
+
+    const oneHot = await extractOpenOneHot(stateBytes)
+    console.log("One hot:", oneHot)
+
+    return { success: true, txHash: txIdentifier, secretOutput: oneHot }
   } catch (error) {
     console.error("sendZkInput failed:", error)
     return {
@@ -85,4 +95,37 @@ export async function sendZkInput(
       error: error instanceof Error ? error.message : "Unknown error"
     }
   }
+}
+
+export async function extractOpenOneHot(state: any): Promise<number[]> {
+  const finalVar = state.variables[state.variables.length - 2]
+
+  console.log("Final variable:", finalVar)
+  if (!finalVar.value || !finalVar.value.maskedInputShare.data) {
+    throw new Error("Final variable does not contain data")
+  }
+
+  const dataBase64: string = finalVar.value.maskedInputShare.data
+
+  const dataBytes = Buffer.from(dataBase64, "base64")
+
+  console.log("Final variable data (hex):", dataBytes.toString("hex"))
+
+  const alternate = Buffer.from(
+    finalVar.value.maskedInputShare.data.toString("hex")
+  )
+
+  const oneHotBytes = dataBase64.slice(dataBase64.length - 8)
+
+  const oneHot = Array.from(dataBytes.slice(dataBytes.length - 8)).map(b =>
+    b === 1 ? 1 : 0
+  )
+
+  const alternateOneHot = Array.from(alternate.slice(alternate.length - 8)).map(
+    b => (b === 1 ? 1 : 0)
+  )
+
+  console.log("Extracted final one-hot vector:", oneHot)
+  console.log("Extracted alternate one-hot vector:", alternateOneHot)
+  return oneHot
 }

@@ -1,26 +1,10 @@
-import {
-  CryptoUtils,
-  SignatureProviderKeyPair
-} from "@partisiablockchain/zk-client"
+import { CryptoUtils } from "@partisiablockchain/zk-client"
 import { CompactBitArray } from "@secata-public/bitmanipulation-ts"
+import { SenderAuthenticationKeyPair } from "@partisiablockchain/blockchain-api-transaction-client"
 
-/**
- * Helper: scans a Uint8Array (the raw secret data) and returns the first valid one-hot vector.
- * A valid one-hot vector is an array of 8 numbers (0 or 1) with exactly one '1'.
- */
-function extractValidOneHot(data: Uint8Array): number[] | null {
-  for (let j = 0; j < data.length; j++) {
-    const byte = data[j]
-    const bits: number[] = []
-    for (let i = 0; i < 8; i++) {
-      bits.push((byte >> i) & 1)
-    }
-    // Check if exactly one bit is set
-    if (bits.filter(bit => bit === 1).length === 1) {
-      return bits
-    }
-  }
-  return null
+function formatVarId(varId: number): string {
+  const hex = varId.toString(16).padStart(8, "0")
+  return "0x" + hex
 }
 
 /**
@@ -36,44 +20,104 @@ function extractValidOneHot(data: Uint8Array): number[] | null {
  * @throws if the secret output is not available before timeout.
  */
 export async function pollForSecretOutput(
-  realClient: any, // adjust type as needed
+  realClient: any,
   txIdentifier: string,
+  finalVarId: number,
   pollInterval = 5000,
   timeout = 60000
 ): Promise<number[]> {
+  const finalVarIdStr = formatVarId(finalVarId)
+  console.log("Polling for final secret variable with ID:", finalVarIdStr)
   const startTime = Date.now()
   while (Date.now() - startTime < timeout) {
     const owner = CryptoUtils.privateKeyToKeypair(
       process.env.PARTI_PRIVATE_KEY!
     )
-    // Call fetchSecretVariable with a SignatureProviderKeyPair and the secret variable index (here: 1)
-    const reconstructedSecret: CompactBitArray =
-      await realClient.fetchSecretVariable(
-        new SignatureProviderKeyPair(owner),
-        1
+    // Pass the final variable id as a hex string
+    const reconstructedSecret: any = await realClient.fetchSecretVariable(
+      new SenderAuthenticationKeyPair(owner),
+      finalVarIdStr
+    )
+
+    console.log(
+      "Reconstructed secret data (hex):",
+      Buffer.from(reconstructedSecret.data).toString("hex")
+    )
+    console.log("Bit length:", reconstructedSecret.length)
+    console.log("Data length (bytes):", reconstructedSecret.data.length)
+
+    if (reconstructedSecret.data && reconstructedSecret.data.length > 0) {
+      const finalBytes = reconstructedSecret.data.slice(
+        reconstructedSecret.data.length - 8
       )
-
-    const data = reconstructedSecret.data
-    console.log("Raw secret data (hex):", Buffer.from(data).toString("hex"))
-
-    if (data && data.length > 0) {
-      const lastByte = data[data.length - 1]
-      const oneHotArray: number[] = []
-      for (let i = 0; i < 8; i++) {
-        oneHotArray.push((lastByte >> i) & 1)
+      const oneHot: number[] = []
+      for (let i = 0; i < finalBytes.length; i++) {
+        oneHot.push(finalBytes[i] === 1 ? 1 : 0)
       }
-      console.log("One-hot from last byte:", oneHotArray)
+      console.log("Extracted final one-hot vector:", oneHot)
+      return oneHot
     }
-
-    if (data && data.length > 0) {
-      const oneHot = extractValidOneHot(data)
-      if (oneHot) {
-        console.log("Extracted one-hot vector:", oneHot)
-        return oneHot
-      }
-    }
-    // Wait before polling again.
     await new Promise(resolve => setTimeout(resolve, pollInterval))
   }
   throw new Error("Timed out waiting for secret output")
+}
+
+/**
+ * This helper takes the spawned events from waitForSpawnedEvents
+ * and attempts to locate the compute_complete event (shortname "42").
+ * It returns the variable ID (as a number) from that event.
+ */
+export async function getFinalResultVarIdFromEvents(
+  eventsObj: any
+): Promise<number> {
+  console.log("Events received:", eventsObj)
+  if (!eventsObj.events || eventsObj.events.length === 0) {
+    throw new Error("No events found in the transaction")
+  }
+
+  // For this example, take the first event.
+  const computeEvent = eventsObj.events[0]
+  console.log("Using event:", computeEvent)
+
+  const { candidateFromContent, candidateFromIdentifier } =
+    extractCandidateVarIds(computeEvent)
+
+  // For example, try candidate from identifier first.
+  // (You can change this logic based on your testing.)
+  const finalCandidate = candidateFromIdentifier
+  console.log("Using final candidate variable ID:", finalCandidate)
+  return finalCandidate
+}
+
+export function extractCandidateVarIds(event: any): {
+  candidateFromContent: number
+  candidateFromIdentifier: number
+} {
+  // Candidate from event.content: decode base64, take first 4 bytes as uint32 (big-endian)
+  const decodedHex = Buffer.from(event.content, "base64").toString("hex")
+  const candidateFromContent = parseInt(decodedHex.slice(0, 8), 16)
+
+  // Candidate from event.identifier: take first 8 hex digits
+  const candidateFromIdentifier = parseInt(event.identifier.slice(0, 8), 16)
+
+  console.log("Candidate from event.content:", candidateFromContent)
+  console.log("Candidate from event.identifier:", candidateFromIdentifier)
+
+  return { candidateFromContent, candidateFromIdentifier }
+}
+
+export function extractFinalOneHot(data: Uint8Array): number[] {
+  // Log all bytes for debugging.
+  console.log("Full secret data (hex):", Buffer.from(data).toString("hex"))
+  console.log("Data length (bytes):", data.length)
+
+  // Assume final predicted_class is in the last 8 bytes.
+  const finalBytes = data.slice(data.length - 8)
+  const oneHot: number[] = []
+  for (let i = 0; i < finalBytes.length; i++) {
+    // Here we expect that a true Sbu1 is encoded exactly as 1.
+    oneHot.push(finalBytes[i] === 1 ? 1 : 0)
+  }
+  console.log("Extracted final one-hot vector:", oneHot)
+  return oneHot
 }

@@ -11,7 +11,7 @@ export async function submitQuizAnswers(answers: number[]) {
 
   const senderAddr = BlockchainAddress.fromString(SENDER_ADDRESS)
 
-  const modelId: SecretVarId = { rawId: 3 }
+  const modelId: SecretVarId = { rawId: 1 }
   const secretInputBuilder = addInputSample(modelId, senderAddr)
 
   const inputData = { values: answers }

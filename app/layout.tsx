@@ -1,23 +1,20 @@
-import type React from "react"
-import "./globals.css"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-
-const inter = Inter({ subsets: ["latin"] })
+import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "Crypto Personality Quiz",
-  description: "Discover your crypto personality with our interactive MPC quiz"
+  title: "Partisia MPC AI PoC",
+  description: "Created with Partisia",
+  generator: "@bettsosu"
 }
 
 export default function RootLayout({
   children
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
+}>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body>{children}</body>
     </html>
   )
 }

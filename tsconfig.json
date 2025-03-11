@@ -27,8 +27,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "../../hooks/use-mobile.tsx",
-    "../../components/theme-provider.tsx"
+    "../../mpc-quizzlet/lib/personality-data.ts"
   ],
   "exclude": ["node_modules"]
 }

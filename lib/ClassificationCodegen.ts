@@ -10,7 +10,6 @@ import {
   SecretInputBuilder
 } from "@partisiablockchain/abi-client"
 import { CompactBitArray } from "@secata-public/bitmanipulation-ts"
-
 type Option<K> = K | undefined
 export class ClassificationCodegen {
   private readonly _client: BlockchainStateClient | undefined
@@ -74,18 +73,15 @@ function serializeInternalVertex(
 }
 
 export interface LeafVertex {
-  classification: (0 | 1)[]
+  classification: boolean[]
 }
-
 function serializeLeafVertex(_out: AbiOutput, _value: LeafVertex): void {
   const { classification } = _value
   if (classification.length !== 8) {
-    throw new Error("Leaf classification must have 8 bits.")
+    throw new Error("Length of classification does not match expected 8")
   }
-  for (const bit of classification) {
-    // If your Rust is truly [Sbu1; 8], you should do:
-    _out.writeU8(bit)
-    // or if it expects single bits, do `_out.writeBoolean(bit === 1)`.
+  for (const classification_arr of classification) {
+    _out.writeBoolean(classification_arr)
   }
 }
 
