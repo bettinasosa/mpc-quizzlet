@@ -142,6 +142,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-Your Name - [@yourusername](https://twitter.com/yourusername)
+Bettina Sosa - [@bettysrohl](https://twitter.com/bettysrohl)
 
-Project Link: [https://github.com/yourusername/crypto-personality-quiz](https://github.com/yourusername/crypto-personality-quiz)
+Project Link: [https://mpc-crypto-personalities.vercel.app/](https://mpc-crypto-personalities.vercel.app/)
