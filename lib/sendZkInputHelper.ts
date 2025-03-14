@@ -10,7 +10,6 @@ import {
   BlockchainTransactionClient,
   SenderAuthenticationKeyPair
 } from "@partisiablockchain/blockchain-api-transaction-client"
-import { deserializeState } from "./ClassificationCodegen"
 
 const TESTNET_URL = "https://node1.testnet.partisiablockchain.com"
 const CONTRACT_ADDRESS = process.env.PARTI_CONTRACT_ADDRESS!
@@ -40,7 +39,6 @@ export async function sendZkInput(
     const contractAddr = BlockchainAddress.fromString(CONTRACT_ADDRESS)
     const senderAddr = BlockchainAddress.fromString(SENDER_ADDRESS)
 
-    // Build the secret input using the provided builder and data.
     const builtSecret = secretInputBuilder.secretInput(inputData)
     const publicRpc = builtSecret.publicRpc
     const secretBits = builtSecret.secretInput
@@ -69,26 +67,38 @@ export async function sendZkInput(
     )
     console.log("Sent off-chain input to nodes...")
 
-    // Wait for events from the transaction.
+    // Wait for events from the transaction
+    console.log("Waiting for transaction events...")
     const events = await transactionClient.waitForSpawnedEvents(tx)
-    console.log(
-      "Events received:",
-      events.events,
-      events.events[0].executionStatus,
-      events.events[0].content
-    )
+    console.log("Transaction events received:", events.events)
 
+    // Wait a bit to allow the contract to process the input
+    console.log("Waiting for contract state to update...")
+    await new Promise(resolve => setTimeout(resolve, 5000))
+
+    // Get the contract state to find the final variable
     const contractState = await zkClient.getContractState(
       contractAddr.asString()
     )
+    if (!contractState || !contractState.serializedContract) {
+      throw new Error("Failed to get contract state")
+    }
 
-    // console.log("Contract state:", contractState)
+    const variables = contractState.serializedContract.variables || []
+    if (variables.length === 0) {
+      throw new Error("No variables found in contract state")
+    }
 
-    const stateBytes = contractState?.serializedContract
+    const finalVar = variables[variables.length - 1]
+    console.log("Final variable:", finalVar)
 
-    const finalVar = stateBytes?.variables[stateBytes.variables.length - 2]
+    if (!finalVar) {
+      throw new Error("Final variable not found")
+    }
+
+    // Extract the one-hot vector from the final variable
     const oneHot = await extractFinalOneHot(finalVar)
-    console.log("One hot:", oneHot)
+    console.log("One hot vector:", oneHot)
 
     return { success: true, txHash: txIdentifier, secretOutput: oneHot }
   } catch (error) {
@@ -100,17 +110,19 @@ export async function sendZkInput(
   }
 }
 
+// Legacy function kept for compatibility
 export async function extractFinalOneHot(finalVar: any): Promise<number[]> {
   if (
     !finalVar.value ||
     !finalVar.value.maskedInputShare ||
-    !finalVar.value.maskedInputShare.data
+    !finalVar.value.information.data
   ) {
     throw new Error("Final variable does not contain maskedInputShare.data")
   }
 
   // Get the base64 string from the variable.
-  const base64Data: string = finalVar.value.maskedInputShare.data
+  const base64Data: string =
+    finalVar.value.maskedInputShare.data || finalVar.value.maskedInputShare
 
   // Decode the base64 string into a Buffer.
   const dataBytes = Buffer.from(base64Data, "base64")

@@ -32,15 +32,15 @@ export async function submitQuizAnswers(answers: number[]) {
  */
 function convertOneHotToPersonality(oneHot: number[]): string {
   const personalityMapping = [
-    "HODLer",
     "Degen",
     "NFT Enthusiast",
+    "Influencer",
     "DeFi Expert",
     "Privacy Advocate",
     "Developer",
-    "Influencer",
-    "Trader"
+    "Trader",
+    "HODLer"
   ]
   const index = oneHot.findIndex(bit => bit === 1)
-  return index >= 0 ? personalityMapping[index] : "Crypto enthusiast"
+  return index >= 0 ? personalityMapping[index] : "Degen"
 }
